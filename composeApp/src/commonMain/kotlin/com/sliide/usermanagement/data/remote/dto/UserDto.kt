@@ -1,24 +1,25 @@
 package com.sliide.usermanagement.data.remote.dto
 
 import com.sliide.usermanagement.domain.model.User
-import kotlinx.datetime.Instant
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
 data class UserDto(
     val id: Long,
-    val name: String,
-    val email: String,
-    val gender: String,
-    val status: String,
-    @SerialName("created_at") val createdAt: String? = null
+    val firstName: String,
+    val lastName: String = "",
+    val email: String = "",
+    val gender: String = "",
+    val status: String = "active"
 )
 
 @Serializable
+data class UsersResponse(val users: List<UserDto>)
+
+@Serializable
 data class CreateUserRequest(
-    val name: String,
+    val firstName: String,
     val email: String,
     val gender: String,
     val status: String
@@ -26,11 +27,9 @@ data class CreateUserRequest(
 
 fun UserDto.toDomain(): User = User(
     id = id,
-    name = name,
+    name = if (lastName.isBlank()) firstName else "$firstName $lastName",
     email = email,
     gender = gender,
     status = status,
-    createdAt = createdAt
-        ?.let { runCatching { Instant.parse(it).toEpochMilliseconds() }.getOrNull() }
-        ?: Clock.System.now().toEpochMilliseconds()
+    createdAt = Clock.System.now().toEpochMilliseconds()
 )

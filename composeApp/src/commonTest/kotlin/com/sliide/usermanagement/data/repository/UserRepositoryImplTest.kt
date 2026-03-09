@@ -19,7 +19,7 @@ class UserRepositoryImplTest {
     private class FakeRemoteUserSource(
         private val usersResult: () -> List<UserDto> = { emptyList() }
     ) : RemoteUserSource {
-        override suspend fun fetchUsers(): List<UserDto> = usersResult()
+        override suspend fun fetchUsers(skip: Int, limit: Int): List<UserDto> = usersResult()
         override suspend fun createUser(name: String, email: String, gender: String, status: String): UserDto =
             error("unexpected call")
         override suspend fun deleteUser(id: Long) = Unit
@@ -27,17 +27,18 @@ class UserRepositoryImplTest {
 
     private class InMemoryLocalStore(preloaded: List<User> = emptyList()) : UserLocalStore {
         private val store = preloaded.toMutableList()
-        var clearAllCalled = false
+        var clearServerUsersCalled = false
 
         override fun getAllUsers(): List<User> = store.toList()
         override fun insertUsers(users: List<User>) { store.addAll(users) }
         override fun insertUser(user: User) { store.add(user) }
         override fun deleteUser(id: Long) { store.removeAll { it.id == id } }
-        override fun clearAll() { clearAllCalled = true; store.clear() }
+        override fun clearAll() { store.clear() }
+        override fun clearServerUsers() { clearServerUsersCalled = true; store.removeAll { it.id <= 208 } }
     }
 
     private fun user(id: Long) = User(id, "User $id", "u$id@example.com", "male", "active", 0L)
-    private fun userDto(id: Long) = UserDto(id, "User $id", "u$id@example.com", "male", "active", null)
+    private fun userDto(id: Long) = UserDto(id = id, firstName = "User $id", email = "u$id@example.com", gender = "male")
 
     // --- offline fallback tests ---
 
@@ -80,7 +81,7 @@ class UserRepositoryImplTest {
     }
 
     @Test
-    fun `getUsers success clears old cache and inserts fresh data`() = runTest {
+    fun `getUsers success clears server users and inserts fresh data`() = runTest {
         val fresh = listOf(userDto(3))
         val api = FakeRemoteUserSource { fresh }
         val local = InMemoryLocalStore(preloaded = listOf(user(1)))
@@ -88,7 +89,7 @@ class UserRepositoryImplTest {
 
         repo.getUsers()
 
-        assertTrue(local.clearAllCalled)
+        assertTrue(local.clearServerUsersCalled)
         assertEquals(1, local.getAllUsers().size)
         assertEquals(3L, local.getAllUsers().first().id)
     }

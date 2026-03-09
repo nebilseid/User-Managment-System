@@ -4,7 +4,5 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>SUPABASE_KEY</key>
-	<string>$(SUPABASE_KEY)</string>
 </dict>
 </plist>

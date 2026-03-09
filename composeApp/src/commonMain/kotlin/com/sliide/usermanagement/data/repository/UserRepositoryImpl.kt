@@ -8,20 +8,28 @@ import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.domain.repository.UserRepository
 import io.ktor.client.plugins.ResponseException
 import io.ktor.utils.io.errors.IOException
+import kotlin.time.Clock
 
 class UserRepositoryImpl(
     private val api: RemoteUserSource,
     private val localDataSource: UserLocalStore
 ) : UserRepository {
 
-    override suspend fun getUsers(forceRefresh: Boolean): Result<List<User>> = runCatching {
-        val users = api.fetchUsers().map { it.toDomain() }
-        localDataSource.clearAll()
-        localDataSource.insertUsers(users)
-        users
+    override suspend fun getUsers(forceRefresh: Boolean, skip: Int, limit: Int): Result<List<User>> = runCatching {
+        val serverUsers = api.fetchUsers(skip, limit).map { it.toDomain() }
+        if (skip == 0) {
+            // Replace server rows only — locally-created users (id > DUMMYJSON_MAX_ID) are never
+            // touched, so they survive pull-to-refresh and app restarts automatically.
+            localDataSource.clearServerUsers()
+            localDataSource.insertUsers(serverUsers)
+            val localOnly = localDataSource.getAllUsers().filter { it.id > DUMMYJSON_MAX_ID }
+            localOnly + serverUsers
+        } else {
+            serverUsers
+        }
     }.recoverCatching { error ->
-        // Offline fallback — return cached data on initial load; surface error on manual refresh
-        if (!forceRefresh && error is IOException) {
+        // Offline fallback — only applies to initial load (skip == 0); pagination requires network
+        if (!forceRefresh && skip == 0 && error is IOException) {
             val cached = localDataSource.getAllUsers()
             if (cached.isNotEmpty()) return@recoverCatching cached
         }
@@ -34,15 +42,21 @@ class UserRepositoryImpl(
         gender: String,
         status: String
     ): Result<User> = runCatching {
-        api.createUser(name, email, gender, status).toDomain().also {
-            localDataSource.insertUser(it)
-        }
+        val user = api.createUser(name, email, gender, status).toDomain()
+            .copy(id = Clock.System.now().toEpochMilliseconds(), status = status)
+        localDataSource.insertUser(user)
+        user
     }.mapFailure { it.toDomainException() }
 
     override suspend fun deleteUser(id: Long): Result<Unit> = runCatching {
         api.deleteUser(id)
         localDataSource.deleteUser(id)
     }.mapFailure { it.toDomainException() }
+
+    companion object {
+        // DummyJSON user ids go up to 208. Locally-created users get Clock timestamp ids (>>208).
+        private const val DUMMYJSON_MAX_ID = 208L
+    }
 
     private fun Throwable.toDomainException(): DomainException = when (this) {
         is DomainException -> this

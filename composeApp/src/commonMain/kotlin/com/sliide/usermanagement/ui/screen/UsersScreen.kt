@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -126,6 +127,24 @@ fun UsersScreen(
                     isNetworkError = error is UserError.NetworkError
                 )
             )
+        }
+    }
+
+    // Trigger load-more when within 5 items of the end of either list or grid
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val listInfo = listState.layoutInfo
+            val gridInfo = gridState.layoutInfo
+            val nearListEnd = listInfo.totalItemsCount > 0 &&
+                    (listInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= listInfo.totalItemsCount - 5
+            val nearGridEnd = gridInfo.totalItemsCount > 0 &&
+                    (gridInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= gridInfo.totalItemsCount - 5
+            nearListEnd || nearGridEnd
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore && !uiState.isLoadingMore && uiState.hasMore && uiState.users.isNotEmpty()) {
+            viewModel.loadMoreUsers()
         }
     }
 
@@ -234,12 +253,14 @@ fun UsersScreen(
                     uiState.selectedUser,
                     viewModel::selectUser,
                     onLongClick = { viewModel.requestDeleteConfirmation(it) },
-                    gridState = gridState
+                    gridState = gridState,
+                    isLoadingMore = uiState.isLoadingMore
                 )
                 else -> SingleColumnLayout(
                     uiState.users,
                     onLongClick = { viewModel.requestDeleteConfirmation(it) },
-                    listState = listState
+                    listState = listState,
+                    isLoadingMore = uiState.isLoadingMore
                 )
             }
         }
@@ -269,7 +290,8 @@ fun UsersScreen(
 private fun SingleColumnLayout(
     users: List<User>,
     onLongClick: (User) -> Unit,
-    listState: LazyListState
+    listState: LazyListState,
+    isLoadingMore: Boolean = false
 ) {
     LazyColumn(
         state = listState,
@@ -293,6 +315,20 @@ private fun SingleColumnLayout(
                 )
             }
         }
+        if (isLoadingMore) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -302,7 +338,8 @@ private fun TwoColumnLayout(
     selectedUser: User?,
     onSelect: (User?) -> Unit,
     onLongClick: (User) -> Unit,
-    gridState: LazyGridState
+    gridState: LazyGridState,
+    isLoadingMore: Boolean = false
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
@@ -328,6 +365,20 @@ private fun TwoColumnLayout(
                         onLongClick = { onLongClick(user) },
                         modifier = Modifier.animateItem()
                     )
+                }
+            }
+            if (isLoadingMore) {
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }

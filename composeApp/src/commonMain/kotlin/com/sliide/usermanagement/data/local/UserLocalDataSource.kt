@@ -50,4 +50,8 @@ class UserLocalDataSource(private val database: AppDatabase) : UserLocalStore {
     override fun clearAll() {
         database.appDatabaseQueries.deleteAll()
     }
+
+    override fun clearServerUsers() {
+        database.appDatabaseQueries.deleteServerUsers()
+    }
 }

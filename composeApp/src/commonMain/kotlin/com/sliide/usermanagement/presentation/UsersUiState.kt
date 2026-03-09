@@ -7,6 +7,9 @@ data class PendingDeletion(val user: User, val index: Int)
 data class UsersUiState(
     val users: List<User> = emptyList(),
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasMore: Boolean = true,
+    val currentSkip: Int = 0,
     val error: UserError? = null,
     val showAddUserDialog: Boolean = false,
     val isSubmittingUser: Boolean = false,

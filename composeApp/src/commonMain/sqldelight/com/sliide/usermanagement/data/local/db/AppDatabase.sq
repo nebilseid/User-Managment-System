@@ -19,3 +19,6 @@ DELETE FROM UserEntity WHERE id = ?;
 
 deleteAll:
 DELETE FROM UserEntity;
+
+deleteServerUsers:
+DELETE FROM UserEntity WHERE id <= 208;

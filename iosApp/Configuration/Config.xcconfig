@@ -1,7 +1,3 @@
-// Secrets are loaded from Secrets.xcconfig (gitignored, mirrors Android local.properties).
-// Copy Secrets.xcconfig.template to Secrets.xcconfig and fill in your values.
-#include? "Secrets.xcconfig"
-
 TEAM_ID=
 
 PRODUCT_NAME=SliideUserManagement

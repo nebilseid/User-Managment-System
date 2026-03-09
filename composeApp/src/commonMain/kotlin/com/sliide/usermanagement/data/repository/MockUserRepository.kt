@@ -23,9 +23,9 @@ class MockUserRepository : UserRepository {
 
     private var nextId = 11L
 
-    override suspend fun getUsers(forceRefresh: Boolean): Result<List<User>> {
-        delay(800) // simulate network latency
-        return Result.success(users.toList())
+    override suspend fun getUsers(forceRefresh: Boolean, skip: Int, limit: Int): Result<List<User>> {
+        delay(800)
+        return Result.success(users.drop(skip).take(limit))
     }
 
     override suspend fun createUser(
@@ -48,5 +48,4 @@ class MockUserRepository : UserRepository {
         users.removeAll { it.id == id }
         return Result.success(Unit)
     }
-
 }

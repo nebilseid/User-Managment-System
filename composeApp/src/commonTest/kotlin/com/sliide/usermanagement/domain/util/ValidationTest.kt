@@ -17,14 +17,14 @@ class ValidationTest {
     @Test fun `name - leading and trailing spaces are trimmed`() = assertTrue(isValidName("  Bob  "))
     @Test fun `name - all spaces is invalid`() = assertFalse(isValidName("   "))
     @Test fun `name - contains digit is invalid`() = assertFalse(isValidName("Alice2"))
-    @Test fun `name - contains @ symbol is invalid`() = assertFalse(isValidName("Ali@ce"))
+    @Test fun `name - contains at-sign is invalid`() = assertFalse(isValidName("Ali@ce"))
     @Test fun `name - unicode letters are valid`() = assertTrue(isValidName("Ångström"))
     @Test fun `name - name with multiple hyphens is valid`() = assertTrue(isValidName("Jean-Claude Van"))
 
     // --- isValidEmail ---
 
     @Test fun `email - empty string is invalid`() = assertFalse(isValidEmail(""))
-    @Test fun `email - missing @ is invalid`() = assertFalse(isValidEmail("userexample.com"))
+    @Test fun `email - missing at-sign is invalid`() = assertFalse(isValidEmail("userexample.com"))
     @Test fun `email - missing domain is invalid`() = assertFalse(isValidEmail("user@"))
     @Test fun `email - missing TLD is invalid`() = assertFalse(isValidEmail("user@example"))
     @Test fun `email - single char TLD is invalid`() = assertFalse(isValidEmail("user@example.c"))
@@ -36,9 +36,9 @@ class ValidationTest {
     @Test fun `email - uppercase letters are valid`() = assertTrue(isValidEmail("User@Example.COM"))
     @Test fun `email - missing local part is invalid`() = assertFalse(isValidEmail("@example.com"))
     @Test fun `email - spaces are invalid`() = assertFalse(isValidEmail("user @example.com"))
-    @Test fun `email - double @ is invalid`() = assertFalse(isValidEmail("user@@example.com"))
+    @Test fun `email - double at-sign is invalid`() = assertFalse(isValidEmail("user@@example.com"))
     @Test fun `email - leading dot in local part is invalid`() = assertFalse(isValidEmail(".user@example.com"))
-    @Test fun `email - trailing dot before @ is invalid`() = assertFalse(isValidEmail("user.@example.com"))
+    @Test fun `email - trailing dot before at-sign is invalid`() = assertFalse(isValidEmail("user.@example.com"))
     @Test fun `email - consecutive dots in local part are invalid`() = assertFalse(isValidEmail("user..name@example.com"))
     @Test fun `email - consecutive dots in domain are invalid`() = assertFalse(isValidEmail("user@exam..ple.com"))
     @Test fun `email - domain starting with hyphen is invalid`() = assertFalse(isValidEmail("user@-example.com"))

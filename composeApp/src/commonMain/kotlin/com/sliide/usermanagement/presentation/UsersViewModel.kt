@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sliide.usermanagement.data.preferences.DeleteHintStore
 import com.sliide.usermanagement.domain.DomainException
 import com.sliide.usermanagement.domain.model.User
+import com.sliide.usermanagement.domain.repository.UserRepository
 import com.sliide.usermanagement.domain.usecase.CreateUserUseCase
 import com.sliide.usermanagement.domain.usecase.DeleteUserUseCase
 import com.sliide.usermanagement.domain.usecase.GetUsersUseCase
@@ -29,6 +30,9 @@ class UsersViewModel(
     val uiState: StateFlow<UsersUiState> = _uiState.asStateFlow()
 
     private var deletionJob: Job? = null
+    // Ids committed to delete this session. DummyJSON doesn't persist deletes, so we track
+    // them locally and filter them out of every server response for the lifetime of the app.
+    private val deletedIds = mutableSetOf<Long>()
 
     init {
         loadUsers()
@@ -36,10 +40,23 @@ class UsersViewModel(
 
     fun loadUsers(forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            getUsersUseCase(forceRefresh)
+            _uiState.update { it.copy(isLoading = true, error = null, currentSkip = 0, hasMore = true) }
+            getUsersUseCase(forceRefresh, skip = 0, limit = PAGE_SIZE)
                 .onSuccess { users ->
-                    _uiState.update { it.copy(users = users, isLoading = false) }
+                    _uiState.update { state ->
+                        // Keep the pending-deleted user out of the refreshed list so it doesn't
+                        // reappear mid-undo-window. Pagination offsets are still derived from the
+                        // raw server count so skip/limit stay in sync.
+                        val excludeIds = deletedIds + setOfNotNull(state.pendingDeletion?.user?.id)
+                        val visible = if (excludeIds.isEmpty()) users
+                            else users.filter { it.id !in excludeIds }
+                        state.copy(
+                            users = visible,
+                            isLoading = false,
+                            hasMore = users.size >= PAGE_SIZE,
+                            currentSkip = users.size
+                        )
+                    }
                     scheduleDeleteHintDismissal()
                 }
                 .onFailure { error ->
@@ -52,6 +69,30 @@ class UsersViewModel(
                             }
                         )
                     }
+                }
+        }
+    }
+
+    fun loadMoreUsers() {
+        val state = _uiState.value
+        if (state.isLoadingMore || !state.hasMore || state.isLoading) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            getUsersUseCase(skip = state.currentSkip, limit = PAGE_SIZE)
+                .onSuccess { newUsers ->
+                    _uiState.update {
+                        it.copy(
+                            users = it.users + newUsers,
+                            isLoadingMore = false,
+                            hasMore = newUsers.size >= PAGE_SIZE,
+                            currentSkip = it.currentSkip + newUsers.size
+                        )
+                    }
+                }
+                .onFailure {
+                    // Silently clear the loading state; the user can scroll to retry
+                    _uiState.update { it.copy(isLoadingMore = false) }
                 }
         }
     }
@@ -134,13 +175,15 @@ class UsersViewModel(
     // Commits a displaced pending deletion (no undo window). On failure, restores
     // the user directly using the captured PendingDeletion rather than reading state.
     private suspend fun flushDelete(pending: PendingDeletion) {
-        deleteUserUseCase(pending.user.id).onFailure {
-            _uiState.update { state ->
-                val mutableList = state.users.toMutableList()
-                mutableList.add(pending.index.coerceIn(0, mutableList.size), pending.user)
-                state.copy(users = mutableList)
+        deleteUserUseCase(pending.user.id)
+            .onSuccess { deletedIds.add(pending.user.id) }
+            .onFailure {
+                _uiState.update { state ->
+                    val mutableList = state.users.toMutableList()
+                    mutableList.add(pending.index.coerceIn(0, mutableList.size), pending.user)
+                    state.copy(users = mutableList)
+                }
             }
-        }
     }
 
     fun undoDelete() {
@@ -169,7 +212,10 @@ class UsersViewModel(
 
     private suspend fun commitDelete(id: Long) {
         deleteUserUseCase(id)
-            .onSuccess { _uiState.update { it.copy(pendingDeletion = null) } }
+            .onSuccess {
+                deletedIds.add(id)
+                _uiState.update { it.copy(pendingDeletion = null) }
+            }
             .onFailure { restoreDeletedUser() }
         deletionJob = null
     }
@@ -187,5 +233,6 @@ class UsersViewModel(
     companion object {
         const val UNDO_TIMEOUT_MS = 4_000L
         const val HINT_DISPLAY_MS = 3_500L
+        const val PAGE_SIZE = UserRepository.PAGE_SIZE
     }
 }

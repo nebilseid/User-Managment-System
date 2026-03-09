@@ -15,15 +15,11 @@ import com.sliide.usermanagement.domain.usecase.GetUsersUseCase
 import com.sliide.usermanagement.presentation.UsersViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.header
-import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import com.sliide.usermanagement.isDebugBuild
-import com.sliide.usermanagement.supabaseApiKey
 import org.koin.dsl.module
 
 val appModule = module {
@@ -39,10 +35,6 @@ val appModule = module {
             }
             install(Logging) {
                 level = if (isDebugBuild) LogLevel.INFO else LogLevel.NONE
-            }
-            defaultRequest {
-                header("apikey", supabaseApiKey)
-                header(HttpHeaders.Authorization, "Bearer $supabaseApiKey")
             }
         }
     }

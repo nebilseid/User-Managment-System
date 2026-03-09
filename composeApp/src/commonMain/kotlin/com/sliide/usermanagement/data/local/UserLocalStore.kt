@@ -8,4 +8,5 @@ interface UserLocalStore {
     fun insertUser(user: User)
     fun deleteUser(id: Long)
     fun clearAll()
+    fun clearServerUsers()
 }

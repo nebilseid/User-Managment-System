@@ -3,6 +3,10 @@
 A cross-platform User Management app built with Kotlin Multiplatform and Compose Multiplatform,
 targeting Android and iOS from a single shared codebase.
 
+> **Branch:** `dummyjson-integration` — backend is [DummyJSON](https://dummyjson.com), a public
+> read-only fake API that requires no setup. See `main` for the Supabase backend with full
+> server-side persistence and a clean data layer without the workarounds described below.
+
 ---
 
 ## Building and Running
@@ -21,9 +25,8 @@ Open `/iosApp` in Xcode and run, or use the iOS run configuration in Fleet/Andro
 ./gradlew :composeApp:allTests
 ```
 
-> **Note:** The app uses a [Supabase](https://supabase.com) hosted database as the backend.
-> GoRest (the original spec API) has been experiencing extended downtime; Supabase was chosen as a
-> stable, schema-compatible replacement with identical field names and Long IDs.
+> **Note:** The app uses [DummyJSON](https://dummyjson.com) as the backend (`GET/POST/DELETE /users`).
+> It requires no API key and needs no local setup — clone and run.
 
 ---
 
@@ -59,6 +62,14 @@ scaffolding is in place; the value comes as the product grows.
 ---
 
 ## Key Technical Decisions
+
+**Infinite scroll pagination**
+`GET /users?limit=30&skip=N` — the app loads the first page on launch and appends subsequent
+pages as the user scrolls within 5 items of the list end. Pull-to-refresh resets to page 0.
+The `hasMore` flag is derived from the returned page size (`users.size < PAGE_SIZE` → no more
+pages). Initial load uses shimmer placeholders (see below); subsequent page loads show a
+`CircularProgressIndicator` at the list footer — shimmer mid-scroll would be disruptive and
+imply the whole list is reloading, which it isn't.
 
 **Optimistic delete with timed commit**
 Rather than waiting for the API to confirm deletion before updating the UI, I remove the item
@@ -132,15 +143,32 @@ than a validation error form.
 
 ## Known Tradeoffs
 
-**Supabase instead of GoRest** — GoRest was experiencing extended downtime during development.
-Supabase was chosen as a stable replacement; the schema is identical (same field names, Long IDs)
-and the data layer required minimal adaptation (simplified pagination, PostgREST filter syntax for
-delete, `Prefer: return=representation` for create).
+**DummyJSON is a read-only fake API** — writes are simulated server-side but not actually persisted.
+This created five concrete workarounds, all confined to the data and presentation layers:
 
-**Last page fetching** — the spec requests data from the last page of `/users`. The current
-implementation fetches the most recent records ordered by `id` descending, which surfaces the same
-data set for an append-only API. A strict implementation would fetch page 1 to determine total page
-count, then fetch the final page explicitly.
+1. **Duplicate id on create.** `POST /users/add` always returns `id: 209` regardless of payload.
+   The repository discards it and assigns `Clock.System.now().toEpochMilliseconds()` instead,
+   giving every locally-created user a unique id that won't collide with the server range (1–208)
+   or repeat across creates.
+
+2. **`status` ignored on create.** DummyJSON echoes back `status: "active"` regardless of what
+   was sent. The repository overrides the field in the same `.copy()` call used to fix the id,
+   preserving the user's chosen value locally.
+
+3. **404 on delete for locally-created users.** `DELETE /users/{id}` returns 404 for any id > 208
+   (the resource was never persisted server-side). `UserApi` catches `ResponseException` and treats
+   404 as success — the delete intent is satisfied even if the server never knew the user existed.
+
+4. **Deletes not persisted — deleted users reappear on refresh.** Even for server users (id 1–208),
+   DummyJSON returns 200 on DELETE but doesn't actually remove them, so pull-to-refresh would
+   restore them. The ViewModel maintains a `deletedIds: MutableSet<Long>` for the session lifetime.
+   Every server response is filtered against this set before updating the UI, so deleted users stay
+   gone for the entire session regardless of how many refreshes follow.
+
+5. **Locally-created users survive pull-to-refresh and app restarts.** On a first-page fetch,
+   the repository calls `clearServerUsers()` — a targeted SQL `DELETE WHERE id <= 208` — rather
+   than wiping the entire cache. Locally-created users (id = epoch-ms timestamp, >> 208) are never
+   touched by a refresh, so they persist across sessions automatically without any rescue logic.
 
 **No Turbine** — the ViewModel tests use `StateFlow.value` snapshots rather than a flow-testing
 library. This means tests don't catch multi-emission sequences, but for a `StateFlow` with
@@ -154,9 +182,10 @@ that adds an indirection hop with no current benefit. It pays off when business 
 
 ## What I'd Do With More Time
 
-**Pagination** — a production implementation would load paginated results with a `LazyColumn`
-that triggers the next page as the user scrolls near the bottom, using a `PagingSource` or a
-manual offset cursor.
+**Jetpack Paging 3** — the current infinite scroll uses a manual offset cursor (`skip`/`limit`)
+which is correct but doesn't give backpressure, prefetch distance control, or retry semantics out
+of the box. A `PagingSource` backed by Paging 3 would handle all of that and integrate with
+`LazyPagingItems` on the UI side.
 
 **Create user animation** — the new user appears at position 0 in the list. `animateItem()` handles
 this, but I'd also briefly highlight the new card (a subtle background pulse) so the user's eye is

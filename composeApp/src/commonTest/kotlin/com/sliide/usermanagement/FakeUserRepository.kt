@@ -14,7 +14,7 @@ class FakeUserRepository : UserRepository {
     val deleteCalledWithIds: MutableList<Long> = mutableListOf()
     var createCallCount: Int = 0
 
-    override suspend fun getUsers(forceRefresh: Boolean): Result<List<User>> = getUsersResult
+    override suspend fun getUsers(forceRefresh: Boolean, skip: Int, limit: Int): Result<List<User>> = getUsersResult
 
     override suspend fun createUser(
         name: String,
