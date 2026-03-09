@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!--
+        Bold "S": two semicircular arcs joined by an S-curve bezier.
+        Upper arc: (70,44) → (38,44) sweeping upward through (54,28).
+        Bezier:    (38,44) → (70,64) creating the diagonal crossover.
+        Lower arc: (70,64) → (38,64) sweeping downward through (54,80).
+    -->
+    <path
+        android:pathData="M 70,44 A 16,16 0 0,0 38,44 C 38,54 70,54 70,64 A 16,16 0 0,1 38,64"
+        android:strokeColor="#FCFCFC"
+        android:strokeWidth="13"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+</vector>

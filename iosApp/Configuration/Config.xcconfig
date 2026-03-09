@@ -1,0 +1,13 @@
+// Secrets are loaded from Secrets.xcconfig (gitignored, mirrors Android local.properties).
+// Copy Secrets.xcconfig.template to Secrets.xcconfig and fill in your values.
+#include? "Secrets.xcconfig"
+
+TEAM_ID=
+
+PRODUCT_NAME=SliideUserManagement
+PRODUCT_BUNDLE_IDENTIFIER=com.sliide.usermanagement.SliideUserManagement$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
+
+OTHER_LDFLAGS = $(inherited) -lsqlite3

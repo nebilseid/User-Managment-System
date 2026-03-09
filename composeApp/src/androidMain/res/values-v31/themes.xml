@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ system splash: match our custom Compose splash exactly -->
+    <style name="Theme.SliideApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sliide_red</item>
+        <item name="android:windowSplashScreenBackground">@color/sliide_red</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>
