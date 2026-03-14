@@ -1,8 +1,11 @@
 package com.sliide.usermanagement.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -58,11 +61,19 @@ fun StatusChip(
         shape = RoundedCornerShape(12.dp),
         color = chipColor.copy(alpha = 0.12f)
     ) {
-        Text(
-            text = status.replaceFirstChar { it.uppercase() },
+        Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = chipColor
-        )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Canvas(modifier = Modifier.size(6.dp)) {
+                drawCircle(color = chipColor)
+            }
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = status.replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.labelSmall,
+                color = chipColor
+            )
+        }
     }
 }

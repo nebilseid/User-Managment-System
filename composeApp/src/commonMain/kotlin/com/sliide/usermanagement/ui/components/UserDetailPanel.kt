@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sliide.usermanagement.domain.model.User
+import com.sliide.usermanagement.ui.util.toMemberSince
 import com.sliide.usermanagement.ui.util.toTitleCase
 
 
@@ -57,12 +59,6 @@ fun UserDetailPanel(
             text = user.name.toTitleCase(),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = user.email,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -99,6 +95,20 @@ fun UserDetailPanel(
                     label = "Status"
                 ) {
                     StatusChip(status = user.status)
+                }
+                user.createdAt.toMemberSince()?.let { memberSince ->
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
+                    DetailRow(
+                        icon = { Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        label = "Member Since"
+                    ) {
+                        Text(
+                            text = memberSince,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }

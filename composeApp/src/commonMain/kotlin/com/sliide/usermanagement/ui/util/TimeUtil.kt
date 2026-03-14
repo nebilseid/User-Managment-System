@@ -1,6 +1,17 @@
 package com.sliide.usermanagement.ui.util
 
 import kotlin.time.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
+fun Long.toMemberSince(): String? {
+    if (this <= 0L) return null
+    val date = Instant.fromEpochMilliseconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val month = date.month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+    return "$month ${date.year}"
+}
 
 fun Long.toRelativeTime(): String {
     val now = Clock.System.now().toEpochMilliseconds()

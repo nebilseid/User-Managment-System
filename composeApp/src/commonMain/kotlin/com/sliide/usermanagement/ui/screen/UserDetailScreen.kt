@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.ui.components.UserDetailPanel
 import com.sliide.usermanagement.ui.util.PlatformBackHandler
-import com.sliide.usermanagement.ui.util.toTitleCase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +28,7 @@ fun UserDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(user.name.toTitleCase()) },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
