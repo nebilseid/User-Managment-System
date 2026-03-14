@@ -45,10 +45,14 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -151,6 +155,78 @@ fun UsersScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val fabExpanded by remember { derivedStateOf { scrollBehavior.state.collapsedFraction == 0f } }
 
+    // On mobile (non-expanded), navigate to a full-screen detail when a user is selected.
+    // On tablet (expanded), the TwoColumnLayout handles master-detail inline.
+    val showDetail = !isExpanded && uiState.selectedUser != null
+
+    AnimatedContent(
+        targetState = showDetail,
+        transitionSpec = {
+            if (targetState) {
+                // push: slide in from right
+                slideInHorizontally { it } + fadeIn() togetherWith
+                        slideOutHorizontally { -it / 3 } + fadeOut()
+            } else {
+                // pop: slide in from left
+                slideInHorizontally { -it / 3 } + fadeIn() togetherWith
+                        slideOutHorizontally { it } + fadeOut()
+            }
+        },
+        label = "ScreenTransition"
+    ) { detailVisible ->
+        if (detailVisible && uiState.selectedUser != null) {
+            UserDetailScreen(
+                user = uiState.selectedUser!!,
+                onBack = { viewModel.selectUser(null) }
+            )
+        } else {
+            UsersListScaffold(
+                uiState = uiState,
+                viewModel = viewModel,
+                isExpanded = isExpanded,
+                snackbarHostState = snackbarHostState,
+                pullRefreshState = pullRefreshState,
+                listState = listState,
+                gridState = gridState,
+                scrollBehavior = scrollBehavior,
+                fabExpanded = fabExpanded
+            )
+        }
+    }
+
+    uiState.confirmingDeleteUser?.let { user ->
+        DeleteConfirmDialog(
+            user = user,
+            onDismiss = { viewModel.dismissDeleteConfirmation() },
+            onConfirm = { viewModel.initiateDelete(user) }
+        )
+    }
+
+    if (uiState.showAddUserDialog) {
+        AddUserDialog(
+            isSubmitting = uiState.isSubmittingUser,
+            serverError = uiState.addUserError,
+            onDismiss = { viewModel.dismissAddUserDialog() },
+            onConfirm = { name, email, gender, status ->
+                viewModel.createUser(name, email, gender, status)
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UsersListScaffold(
+    uiState: com.sliide.usermanagement.presentation.UsersUiState,
+    viewModel: UsersViewModel,
+    isExpanded: Boolean,
+    snackbarHostState: SnackbarHostState,
+    pullRefreshState: androidx.compose.material3.pulltorefresh.PullToRefreshState,
+    listState: LazyListState,
+    gridState: LazyGridState,
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
+    fabExpanded: Boolean
+) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -258,6 +334,7 @@ fun UsersScreen(
                 )
                 else -> SingleColumnLayout(
                     uiState.users,
+                    onClick = { viewModel.selectUser(it) },
                     onLongClick = { viewModel.requestDeleteConfirmation(it) },
                     listState = listState,
                     isLoadingMore = uiState.isLoadingMore
@@ -265,30 +342,12 @@ fun UsersScreen(
             }
         }
     }
-
-    uiState.confirmingDeleteUser?.let { user ->
-        DeleteConfirmDialog(
-            user = user,
-            onDismiss = { viewModel.dismissDeleteConfirmation() },
-            onConfirm = { viewModel.initiateDelete(user) }
-        )
-    }
-
-    if (uiState.showAddUserDialog) {
-        AddUserDialog(
-            isSubmitting = uiState.isSubmittingUser,
-            serverError = uiState.addUserError,
-            onDismiss = { viewModel.dismissAddUserDialog() },
-            onConfirm = { name, email, gender, status ->
-                viewModel.createUser(name, email, gender, status)
-            }
-        )
-    }
 }
 
 @Composable
 private fun SingleColumnLayout(
     users: List<User>,
+    onClick: (User) -> Unit,
     onLongClick: (User) -> Unit,
     listState: LazyListState,
     isLoadingMore: Boolean = false
@@ -310,6 +369,7 @@ private fun SingleColumnLayout(
             ) {
                 UserCard(
                     user = user,
+                    onClick = { onClick(user) },
                     onLongClick = { onLongClick(user) },
                     modifier = Modifier.animateItem()
                 )
