@@ -53,6 +53,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -163,16 +164,15 @@ fun UsersScreen(
         targetState = showDetail,
         transitionSpec = {
             if (targetState) {
-                // push: slide in from right
-                slideInHorizontally { it } + fadeIn() togetherWith
-                        slideOutHorizontally { -it / 3 } + fadeOut()
+                slideInHorizontally { it } togetherWith slideOutHorizontally { -it / 3 }
             } else {
-                // pop: slide in from left
-                slideInHorizontally { -it / 3 } + fadeIn() togetherWith
-                        slideOutHorizontally { it } + fadeOut()
+                slideInHorizontally { -it / 3 } togetherWith slideOutHorizontally { it }
             }
         },
-        label = "ScreenTransition"
+        label = "ScreenTransition",
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) { detailVisible ->
         if (detailVisible && uiState.selectedUser != null) {
             UserDetailScreen(
