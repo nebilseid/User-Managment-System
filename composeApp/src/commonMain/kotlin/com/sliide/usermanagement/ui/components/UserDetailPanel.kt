@@ -1,6 +1,6 @@
 package com.sliide.usermanagement.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,9 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sliide.usermanagement.domain.model.User
+import com.sliide.usermanagement.ui.strings.AppStrings
 import com.sliide.usermanagement.ui.util.toMemberSince
 import com.sliide.usermanagement.ui.util.toTitleCase
 
@@ -70,30 +71,20 @@ fun UserDetailPanel(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                DetailRow(
-                    icon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "Email"
-                ) {
-                    Text(
-                        text = user.email,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                EmailDetailRow(
+                    value = user.email
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                 DetailRow(
                     icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "Gender"
+                    label = AppStrings.LABEL_GENDER
                 ) {
                     GenderChip(gender = user.gender)
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                 DetailRow(
                     icon = { Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    label = "Status"
+                    label = AppStrings.LABEL_STATUS
                 ) {
                     StatusChip(status = user.status)
                 }
@@ -101,7 +92,7 @@ fun UserDetailPanel(
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                     DetailRow(
                         icon = { Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                        label = "Member Since"
+                        label = AppStrings.LABEL_MEMBER_SINCE
                     ) {
                         Text(
                             text = memberSince,
@@ -119,6 +110,35 @@ fun UserDetailPanel(
 }
 
 @Composable
+private fun EmailDetailRow(
+    value: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = AppStrings.LABEL_EMAIL,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 30.dp) // icon 18dp + spacer 12dp
+        )
+    }
+}
+
+@Composable
 private fun DetailRow(
     icon: @Composable () -> Unit,
     label: String,
@@ -128,12 +148,9 @@ private fun DetailRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             icon()
             Spacer(modifier = Modifier.width(12.dp))
             Text(
@@ -142,6 +159,29 @@ private fun DetailRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        trailing()
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            trailing()
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserDetailPanelActivePreview() {
+    MaterialTheme {
+        UserDetailPanel(user = previewUser)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserDetailPanelInactivePreview() {
+    MaterialTheme {
+        UserDetailPanel(user = previewUserInactive)
     }
 }

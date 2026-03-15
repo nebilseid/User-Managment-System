@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarVisuals
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,5 +76,28 @@ fun ErrorSnackbar(data: SnackbarData) {
                 modifier = Modifier.weight(1f)
             )
         }
+    }
+}
+
+private fun fakeErrorSnackbarData(message: String, isNetworkError: Boolean): SnackbarData =
+    object : SnackbarData {
+        override val visuals = ErrorSnackbarVisuals(message = message, isNetworkError = isNetworkError)
+        override fun dismiss() {}
+        override fun performAction() {}
+    }
+
+@Preview(showBackground = true)
+@Composable
+private fun ErrorSnackbarNetworkPreview() {
+    MaterialTheme {
+        ErrorSnackbar(data = fakeErrorSnackbarData("No internet connection", isNetworkError = true))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ErrorSnackbarServerPreview() {
+    MaterialTheme {
+        ErrorSnackbar(data = fakeErrorSnackbarData("Couldn't refresh — server error", isNetworkError = false))
     }
 }

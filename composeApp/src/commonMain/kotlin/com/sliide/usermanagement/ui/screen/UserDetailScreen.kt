@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.ui.components.UserDetailPanel
+import com.sliide.usermanagement.ui.strings.AppStrings
 import com.sliide.usermanagement.ui.util.PlatformBackHandler
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +34,7 @@ fun UserDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = AppStrings.CD_BACK
                         )
                     }
                 },

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -53,5 +54,21 @@ fun UserAvatar(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserAvatarPreview() {
+    MaterialTheme {
+        UserAvatar(name = "Jane Smith")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserAvatarLargePreview() {
+    MaterialTheme {
+        UserAvatar(name = "Jane Smith", size = 88.dp)
     }
 }

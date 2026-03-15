@@ -5,7 +5,7 @@ import com.sliide.usermanagement.data.remote.RemoteUserSource
 import com.sliide.usermanagement.data.remote.dto.UserDto
 import com.sliide.usermanagement.domain.DomainException
 import com.sliide.usermanagement.domain.model.User
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

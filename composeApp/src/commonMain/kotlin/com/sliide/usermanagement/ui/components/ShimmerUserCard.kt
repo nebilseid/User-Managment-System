@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -97,5 +98,13 @@ fun ShimmerUserCard(modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShimmerUserCardPreview() {
+    MaterialTheme {
+        ShimmerUserCard()
     }
 }

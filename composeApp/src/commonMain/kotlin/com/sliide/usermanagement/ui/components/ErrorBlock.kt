@@ -17,8 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sliide.usermanagement.ui.strings.AppStrings
 import org.jetbrains.compose.resources.painterResource
 import sliideusermanagement.composeapp.generated.resources.Res
 import sliideusermanagement.composeapp.generated.resources.ic_sad
@@ -66,9 +68,33 @@ fun ErrorBlock(
             )
         ) {
             Text(
-                text = "TRY AGAIN",
+                text = AppStrings.BTN_TRY_AGAIN,
                 style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 2.sp)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ErrorBlockNoInternetPreview() {
+    MaterialTheme {
+        ErrorBlock(
+            title = AppStrings.ERROR_NO_INTERNET_TITLE,
+            message = AppStrings.ERROR_NO_INTERNET_MSG,
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ErrorBlockServerPreview() {
+    MaterialTheme {
+        ErrorBlock(
+            title = AppStrings.ERROR_SERVER_TITLE,
+            message = AppStrings.ERROR_NO_INTERNET_MSG,
+            onRetry = {}
+        )
     }
 }

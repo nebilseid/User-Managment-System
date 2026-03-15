@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import com.sliide.usermanagement.domain.model.User
 
 import com.sliide.usermanagement.ui.util.toRelativeTime
@@ -81,5 +82,29 @@ fun UserCard(
             }
             StatusChip(status = user.status)
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserCardPreview() {
+    MaterialTheme {
+        UserCard(user = previewUser, onLongClick = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserCardSelectedPreview() {
+    MaterialTheme {
+        UserCard(user = previewUser, isSelected = true, onLongClick = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserCardInactivePreview() {
+    MaterialTheme {
+        UserCard(user = previewUserInactive, onLongClick = {})
     }
 }

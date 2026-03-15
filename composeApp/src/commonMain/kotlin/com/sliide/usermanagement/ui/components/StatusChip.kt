@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sliide.usermanagement.ui.theme.StatusGreen
 
@@ -76,4 +77,28 @@ fun StatusChip(
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatusChipActivePreview() {
+    MaterialTheme { StatusChip(status = "active") }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatusChipInactivePreview() {
+    MaterialTheme { StatusChip(status = "inactive") }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GenderChipMalePreview() {
+    MaterialTheme { GenderChip(gender = "male") }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GenderChipFemalePreview() {
+    MaterialTheme { GenderChip(gender = "female") }
 }

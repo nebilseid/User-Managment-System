@@ -15,10 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,14 +42,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +55,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -82,6 +75,7 @@ import com.sliide.usermanagement.ui.components.ErrorSnackbarVisuals
 import com.sliide.usermanagement.ui.components.ShimmerUserCard
 import com.sliide.usermanagement.ui.components.UserCard
 import com.sliide.usermanagement.ui.components.UserDetailPanel
+import com.sliide.usermanagement.ui.strings.AppStrings
 import com.sliide.usermanagement.ui.util.toTitleCase
 import org.koin.compose.koinInject
 
@@ -96,13 +90,11 @@ fun UsersScreen(
     val isExpanded = with(LocalDensity.current) { windowInfo.containerSize.width.toDp() } > 600.dp
     val pullRefreshState = rememberPullToRefreshState()
     val listState = rememberLazyListState()
-    val gridState = rememberLazyGridState()
     var wasSubmitting by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSubmittingUser, uiState.showAddUserDialog) {
         if (wasSubmitting && !uiState.isSubmittingUser && !uiState.showAddUserDialog) {
             listState.animateScrollToItem(0)
-            gridState.animateScrollToItem(0)
         }
         wasSubmitting = uiState.isSubmittingUser
     }
@@ -110,11 +102,11 @@ fun UsersScreen(
     LaunchedEffect(uiState.pendingDeletion) {
         uiState.pendingDeletion?.let { pending ->
             val result = snackbarHostState.showSnackbar(
-                message = "${pending.user.name.toTitleCase()} deleted",
-                actionLabel = "Undo",
+                message = AppStrings.deletedMessage(pending.user.name.toTitleCase()),
+                actionLabel = AppStrings.SNACKBAR_UNDO,
                 duration = SnackbarDuration.Long
             )
-            if (result == SnackbarResult.ActionPerformed) {
+            if (result   == SnackbarResult.ActionPerformed) {
                 viewModel.undoDelete()
             }
         }
@@ -126,8 +118,8 @@ fun UsersScreen(
             snackbarHostState.showSnackbar(
                 ErrorSnackbarVisuals(
                     message = when (error) {
-                        is UserError.NetworkError -> "No internet connection"
-                        is UserError.GenericError -> "Couldn't refresh — server error"
+                        is UserError.NetworkError -> AppStrings.ERROR_NO_INTERNET_SNACKBAR
+                        is UserError.GenericError -> AppStrings.ERROR_SERVER_SNACKBAR
                     },
                     isNetworkError = error is UserError.NetworkError
                 )
@@ -135,16 +127,12 @@ fun UsersScreen(
         }
     }
 
-    // Trigger load-more when within 5 items of the end of either list or grid
+    // Trigger load-more when within 5 items of the end of the list
     val shouldLoadMore by remember {
         derivedStateOf {
             val listInfo = listState.layoutInfo
-            val gridInfo = gridState.layoutInfo
-            val nearListEnd = listInfo.totalItemsCount > 0 &&
+            listInfo.totalItemsCount > 0 &&
                     (listInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= listInfo.totalItemsCount - 5
-            val nearGridEnd = gridInfo.totalItemsCount > 0 &&
-                    (gridInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= gridInfo.totalItemsCount - 5
-            nearListEnd || nearGridEnd
         }
     }
     LaunchedEffect(shouldLoadMore) {
@@ -160,37 +148,37 @@ fun UsersScreen(
     // On tablet (expanded), the TwoColumnLayout handles master-detail inline.
     val showDetail = !isExpanded && uiState.selectedUser != null
 
-    AnimatedContent(
-        targetState = showDetail,
-        transitionSpec = {
-            if (targetState) {
-                slideInHorizontally { it } togetherWith slideOutHorizontally { -it / 3 }
-            } else {
-                slideInHorizontally { -it / 3 } togetherWith slideOutHorizontally { it }
-            }
-        },
-        label = "ScreenTransition",
+    // Retain the last selected user so the exit animation has content to slide out
+    var stagedUser by remember { mutableStateOf(uiState.selectedUser) }
+    if (uiState.selectedUser != null) stagedUser = uiState.selectedUser
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-    ) { detailVisible ->
-        if (detailVisible && uiState.selectedUser != null) {
-            UserDetailScreen(
-                user = uiState.selectedUser!!,
-                onBack = { viewModel.selectUser(null) }
-            )
-        } else {
-            UsersListScaffold(
-                uiState = uiState,
-                viewModel = viewModel,
-                isExpanded = isExpanded,
-                snackbarHostState = snackbarHostState,
-                pullRefreshState = pullRefreshState,
-                listState = listState,
-                gridState = gridState,
-                scrollBehavior = scrollBehavior,
-                fabExpanded = fabExpanded
-            )
+    ) {
+        UsersListScaffold(
+            uiState = uiState,
+            viewModel = viewModel,
+            isExpanded = isExpanded,
+            snackbarHostState = snackbarHostState,
+            pullRefreshState = pullRefreshState,
+            listState = listState,
+            scrollBehavior = scrollBehavior,
+            fabExpanded = fabExpanded
+        )
+
+        AnimatedVisibility(
+            visible = showDetail,
+            enter = slideInHorizontally { it },
+            exit = slideOutHorizontally { it }
+        ) {
+            stagedUser?.let { user ->
+                UserDetailScreen(
+                    user = user,
+                    onBack = { viewModel.selectUser(null) }
+                )
+            }
         }
     }
 
@@ -223,7 +211,6 @@ private fun UsersListScaffold(
     snackbarHostState: SnackbarHostState,
     pullRefreshState: androidx.compose.material3.pulltorefresh.PullToRefreshState,
     listState: LazyListState,
-    gridState: LazyGridState,
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     fabExpanded: Boolean
 ) {
@@ -233,7 +220,7 @@ private fun UsersListScaffold(
             LargeTopAppBar(
                 title = {
                     Text(
-                        text = "Users",
+                        text = AppStrings.USERS_TITLE,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -260,7 +247,7 @@ private fun UsersListScaffold(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "Long-press to delete",
+                                    text = AppStrings.HINT_LONG_PRESS_DELETE,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
@@ -279,8 +266,8 @@ private fun UsersListScaffold(
             ExtendedFloatingActionButton(
                 onClick = { viewModel.showAddUserDialog() },
                 expanded = fabExpanded,
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add user") },
-                text = { Text("Add User") },
+                icon = { Icon(Icons.Default.Add, contentDescription = AppStrings.FAB_ADD_USER_CD) },
+                text = { Text(AppStrings.FAB_ADD_USER) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
@@ -312,13 +299,13 @@ private fun UsersListScaffold(
                 uiState.isLoading && uiState.users.isEmpty() -> LoadingContent(isExpanded)
                 uiState.error != null && uiState.users.isEmpty() -> ErrorBlock(
                     title = when (uiState.error) {
-                        is UserError.NetworkError -> "No Internet Connection"
-                        is UserError.GenericError -> "Server Error"
+                        is UserError.NetworkError -> AppStrings.ERROR_NO_INTERNET_TITLE
+                        is UserError.GenericError -> AppStrings.ERROR_SERVER_TITLE
                         null -> ""
                     },
                     message = when (val error = uiState.error) {
-                        is UserError.NetworkError -> "Check your connection and try again."
-                        is UserError.GenericError -> error.message
+                        is UserError.NetworkError -> AppStrings.ERROR_NO_INTERNET_MSG
+                        is UserError.GenericError -> error.message ?: AppStrings.ERROR_GENERIC_FALLBACK
                         null -> ""
                     },
                     onRetry = { viewModel.loadUsers() }
@@ -329,7 +316,7 @@ private fun UsersListScaffold(
                     uiState.selectedUser,
                     viewModel::selectUser,
                     onLongClick = { viewModel.requestDeleteConfirmation(it) },
-                    gridState = gridState,
+                    listState = listState,
                     isLoadingMore = uiState.isLoadingMore
                 )
                 else -> SingleColumnLayout(
@@ -357,23 +344,12 @@ private fun SingleColumnLayout(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        itemsIndexed(users, key = { _, user -> user.id }) { index, user ->
-            var visible by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) {
-                delay(index.coerceAtMost(10) * 50L)
-                visible = true
-            }
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn() + slideInVertically { it / 3 }
-            ) {
-                UserCard(
-                    user = user,
-                    onClick = { onClick(user) },
-                    onLongClick = { onLongClick(user) },
-                    modifier = Modifier.animateItem()
-                )
-            }
+        itemsIndexed(users, key = { _, user -> user.id }) { _, user ->
+            UserCard(
+                user = user,
+                onClick = { onClick(user) },
+                onLongClick = { onLongClick(user) }
+            )
         }
         if (isLoadingMore) {
             item {
@@ -398,37 +374,25 @@ private fun TwoColumnLayout(
     selectedUser: User?,
     onSelect: (User?) -> Unit,
     onLongClick: (User) -> Unit,
-    gridState: LazyGridState,
+    listState: LazyListState,
     isLoadingMore: Boolean = false
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Fixed(2),
+        LazyColumn(
+            state = listState,
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            itemsIndexed(users, key = { _, user -> user.id }) { index, user ->
-                var visible by remember { mutableStateOf(false) }
-                LaunchedEffect(Unit) {
-                    delay(index.coerceAtMost(10) * 50L)
-                    visible = true
-                }
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = fadeIn() + slideInVertically { it / 3 }
-                ) {
-                    UserCard(
-                        user = user,
-                        isSelected = user.id == selectedUser?.id,
-                        onClick = { onSelect(user) },
-                        onLongClick = { onLongClick(user) },
-                        modifier = Modifier.animateItem()
-                    )
-                }
+            itemsIndexed(users, key = { _, user -> user.id }) { _, user ->
+                UserCard(
+                    user = user,
+                    isSelected = user.id == selectedUser?.id,
+                    onClick = { onSelect(user) },
+                    onLongClick = { onLongClick(user) }
+                )
             }
             if (isLoadingMore) {
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                item {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         contentAlignment = Alignment.Center
@@ -461,7 +425,7 @@ private fun TwoColumnLayout(
                     modifier = Modifier.size(48.dp)
                 )
                 Text(
-                    "Select a user to view details",
+                    AppStrings.DETAIL_PLACEHOLDER,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 8.dp)
@@ -508,14 +472,14 @@ private fun EmptyContent() {
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                "No users yet",
+                AppStrings.EMPTY_TITLE,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Tap + to add your first user",
+                AppStrings.EMPTY_SUBTITLE,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 40.dp),

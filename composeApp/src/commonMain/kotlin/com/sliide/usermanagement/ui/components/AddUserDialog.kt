@@ -47,12 +47,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.sliide.usermanagement.domain.util.isValidEmail
 import com.sliide.usermanagement.domain.util.isValidName
 import com.sliide.usermanagement.presentation.CreateUserError
+import com.sliide.usermanagement.ui.strings.AppStrings
 
 @Composable
 fun AddUserDialog(
@@ -70,8 +72,8 @@ fun AddUserDialog(
     var nameDirty by remember { mutableStateOf(false) }
     var emailDirty by remember { mutableStateOf(false) }
 
-    val nameError = if (nameDirty && !isValidName(name)) "Enter a valid full name" else null
-    val emailError = if (emailDirty && !isValidEmail(email)) "Enter a valid email address" else null
+    val nameError = if (nameDirty && !isValidName(name)) AppStrings.ERROR_INVALID_NAME else null
+    val emailError = if (emailDirty && !isValidEmail(email)) AppStrings.ERROR_INVALID_EMAIL else null
 
     val nameEmailComplete = isValidName(name) && isValidEmail(email)
     val needsGender = nameEmailComplete && gender.isEmpty()
@@ -92,7 +94,7 @@ fun AddUserDialog(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "New User",
+                    text = AppStrings.DIALOG_ADD_TITLE,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -101,7 +103,7 @@ fun AddUserDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Full Name") },
+                    label = { Text(AppStrings.FIELD_FULL_NAME) },
                     isError = nameError != null,
                     supportingText = nameError?.let { { Text(it) } },
                     singleLine = true,
@@ -120,7 +122,7 @@ fun AddUserDialog(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(AppStrings.FIELD_EMAIL) },
                     isError = emailError != null,
                     supportingText = emailError?.let { { Text(it) } },
                     singleLine = true,
@@ -137,7 +139,7 @@ fun AddUserDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ChipGroup(
-                    label = "Gender",
+                    label = AppStrings.LABEL_GENDER_SECTION,
                     options = listOf("male", "female"),
                     selected = gender,
                     highlighted = needsGender,
@@ -146,7 +148,7 @@ fun AddUserDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 ChipGroup(
-                    label = "Status",
+                    label = AppStrings.LABEL_STATUS_SECTION,
                     options = listOf("active", "inactive"),
                     selected = status,
                     highlighted = needsStatus,
@@ -177,14 +179,14 @@ fun AddUserDialog(
                             Text(
                                 text = when (serverError) {
                                     is CreateUserError.NetworkError ->
-                                        "No internet connection. Check your network and try again."
+                                        AppStrings.ERROR_ADD_NO_INTERNET
                                     is CreateUserError.DuplicateEmail ->
-                                        "This email is already registered. Please use a different one."
+                                        AppStrings.ERROR_ADD_DUPLICATE_EMAIL
                                     is CreateUserError.ServerError ->
-                                        "Server error. Please try again later."
-                                    is CreateUserError.ValidationError -> serverError.message
+                                        AppStrings.ERROR_ADD_SERVER
+                                    is CreateUserError.ValidationError -> serverError.message ?: AppStrings.ERROR_GENERIC_FALLBACK
                                     is CreateUserError.Unknown, null ->
-                                        "Something went wrong. Please try again."
+                                        AppStrings.ERROR_ADD_UNKNOWN
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer
@@ -215,7 +217,7 @@ fun AddUserDialog(
                         )
                     } else {
                         Text(
-                            "CREATE USER",
+                            AppStrings.BTN_CREATE_USER,
                             style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.sp),
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
@@ -230,7 +232,7 @@ fun AddUserDialog(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     Text(
-                        "Cancel",
+                        AppStrings.BTN_CANCEL,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -251,7 +253,7 @@ private fun ChipGroup(
     val borderColor by animateColorAsState(
         targetValue = if (highlighted) primary.copy(alpha = 0.55f) else Color.Transparent,
         animationSpec = tween(durationMillis = 300),
-        label = "chipGroupBorder"
+        label = AppStrings.ANIM_CHIP_GROUP_BORDER
     )
 
     Column(
@@ -284,3 +286,42 @@ private fun chipColors() = FilterChipDefaults.filterChipColors(
     selectedLabelColor = MaterialTheme.colorScheme.primary,
     selectedLeadingIconColor = MaterialTheme.colorScheme.primary
 )
+
+@Preview(showBackground = true)
+@Composable
+private fun AddUserDialogPreview() {
+    MaterialTheme {
+        AddUserDialog(
+            isSubmitting = false,
+            serverError = null,
+            onDismiss = {},
+            onConfirm = { _, _, _, _ -> }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddUserDialogSubmittingPreview() {
+    MaterialTheme {
+        AddUserDialog(
+            isSubmitting = true,
+            serverError = null,
+            onDismiss = {},
+            onConfirm = { _, _, _, _ -> }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AddUserDialogErrorPreview() {
+    MaterialTheme {
+        AddUserDialog(
+            isSubmitting = false,
+            serverError = com.sliide.usermanagement.presentation.CreateUserError.DuplicateEmail,
+            onDismiss = {},
+            onConfirm = { _, _, _, _ -> }
+        )
+    }
+}

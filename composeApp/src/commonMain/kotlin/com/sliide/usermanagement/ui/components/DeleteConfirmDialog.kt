@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.sliide.usermanagement.domain.model.User
+import com.sliide.usermanagement.ui.strings.AppStrings
 import com.sliide.usermanagement.ui.util.toTitleCase
 
 @Composable
@@ -46,13 +48,13 @@ fun DeleteConfirmDialog(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Delete User",
+                    text = AppStrings.DIALOG_DELETE_TITLE,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "This will permanently remove ${user.name.toTitleCase()} from the system. This action cannot be undone.",
+                    text = AppStrings.deleteWarning(user.name.toTitleCase()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -79,7 +81,7 @@ fun DeleteConfirmDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "DELETE",
+                            AppStrings.BTN_DELETE,
                             style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.sp)
                         )
                     }
@@ -92,11 +94,23 @@ fun DeleteConfirmDialog(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     Text(
-                        "Cancel",
+                        AppStrings.BTN_CANCEL,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DeleteConfirmDialogPreview() {
+    MaterialTheme {
+        DeleteConfirmDialog(
+            user = previewUser,
+            onDismiss = {},
+            onConfirm = {}
+        )
     }
 }

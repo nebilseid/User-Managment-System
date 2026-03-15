@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,5 +68,18 @@ fun DeleteSnackbar(data: SnackbarData) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DeleteSnackbarPreview() {
+    MaterialTheme {
+        DeleteSnackbar(
+            data = fakeSnackbarData(
+                message = "Jane Smith deleted",
+                actionLabel = "Undo"
+            )
+        )
     }
 }

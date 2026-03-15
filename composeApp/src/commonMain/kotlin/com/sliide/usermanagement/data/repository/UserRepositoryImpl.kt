@@ -7,7 +7,7 @@ import com.sliide.usermanagement.domain.DomainException
 import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.domain.repository.UserRepository
 import io.ktor.client.plugins.ResponseException
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 import kotlin.time.Clock
 
 class UserRepositoryImpl(
@@ -58,15 +58,26 @@ class UserRepositoryImpl(
         private const val DUMMYJSON_MAX_ID = 208L
     }
 
-    private fun Throwable.toDomainException(): DomainException = when (this) {
-        is DomainException -> this
-        is IOException -> DomainException.NetworkException(this)
-        is ResponseException -> when (response.status.value) {
-            422 -> DomainException.ConflictException("This email is already registered.", this)
-            in 500..599 -> DomainException.ServerException("Server error. Please try again later.", this)
-            else -> DomainException.ServerException("Unexpected server response (${response.status.value}).", this)
+    private fun Throwable.toDomainException(): DomainException {
+        val exception = when (this) {
+            is DomainException -> this
+            is IOException -> DomainException.NetworkException(this)
+            is ResponseException -> when (response.status.value) {
+                422 -> DomainException.ConflictException("This email is already registered.", this)
+                in 500..599 -> DomainException.ServerException(
+                    "Server error. Please try again later.",
+                    this
+                )
+
+                else -> DomainException.ServerException(
+                    "Unexpected server response (${response.status.value}).",
+                    this
+                )
+            }
+
+            else -> DomainException.ServerException(message ?: "Unknown error", this)
         }
-        else -> DomainException.ServerException(message ?: "Unknown error", this)
+        return exception
     }
 }
 
