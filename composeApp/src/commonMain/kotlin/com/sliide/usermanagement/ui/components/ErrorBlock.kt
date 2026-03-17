@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sliide.usermanagement.ui.strings.AppStrings
 import org.jetbrains.compose.resources.painterResource
-import sliideusermanagement.composeapp.generated.resources.Res
-import sliideusermanagement.composeapp.generated.resources.ic_sad
+import sums.composeapp.generated.resources.Res
+import sums.composeapp.generated.resources.ic_sad
 
 @Composable
 fun ErrorBlock(

@@ -7,13 +7,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
-import sliideusermanagement.composeapp.generated.resources.Res
-import sliideusermanagement.composeapp.generated.resources.inter_bold
-import sliideusermanagement.composeapp.generated.resources.inter_medium
-import sliideusermanagement.composeapp.generated.resources.inter_regular
-import sliideusermanagement.composeapp.generated.resources.inter_semibold
-import sliideusermanagement.composeapp.generated.resources.sliide_sans_bold
-import sliideusermanagement.composeapp.generated.resources.sliide_sans_regular
+import sums.composeapp.generated.resources.Res
+import sums.composeapp.generated.resources.inter_bold
+import sums.composeapp.generated.resources.inter_medium
+import sums.composeapp.generated.resources.inter_regular
+import sums.composeapp.generated.resources.inter_semibold
+import sums.composeapp.generated.resources.sliide_sans_bold
+import sums.composeapp.generated.resources.sliide_sans_regular
 
 @Composable
 fun rememberSliideTypography(): Typography {
