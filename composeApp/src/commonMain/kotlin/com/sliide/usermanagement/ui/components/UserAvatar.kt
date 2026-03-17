@@ -28,7 +28,8 @@ private val avatarPalette = listOf(
 )
 
 private fun avatarColor(name: String): Color {
-    val index = name.fold(0) { acc, c -> acc + c.code } % avatarPalette.size
+    val index = name.fold(0) { acc, c -> acc * 31 + c.code }
+        .and(Int.MAX_VALUE) % avatarPalette.size
     return avatarPalette[index]
 }
 
@@ -38,6 +39,12 @@ fun UserAvatar(
     size: Dp = 48.dp,
     modifier: Modifier = Modifier
 ) {
+    val initials = name.split(" ")
+        .filter { it.isNotEmpty() }
+        .take(2)
+        .map { it.first().uppercaseChar() }
+        .joinToString("")
+
     Surface(
         modifier = modifier
             .size(size)
@@ -47,7 +54,7 @@ fun UserAvatar(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = name.split(" ").filter { it.isNotEmpty() }.take(2).map { it.first().uppercaseChar() }.joinToString(""),
+                text = initials,
                 style = if (size > 60.dp) MaterialTheme.typography.headlineMedium
                         else MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimary,

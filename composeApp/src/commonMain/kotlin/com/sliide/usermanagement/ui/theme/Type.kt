@@ -12,14 +12,14 @@ import sliideusermanagement.composeapp.generated.resources.inter_bold
 import sliideusermanagement.composeapp.generated.resources.inter_medium
 import sliideusermanagement.composeapp.generated.resources.inter_regular
 import sliideusermanagement.composeapp.generated.resources.inter_semibold
-import sliideusermanagement.composeapp.generated.resources.riot_sans_bold
-import sliideusermanagement.composeapp.generated.resources.riot_sans_regular
+import sliideusermanagement.composeapp.generated.resources.sliide_sans_bold
+import sliideusermanagement.composeapp.generated.resources.sliide_sans_regular
 
 @Composable
 fun rememberSliideTypography(): Typography {
-    val riotSans = FontFamily(
-        Font(Res.font.riot_sans_regular),
-        Font(Res.font.riot_sans_bold, FontWeight.Bold)
+    val sliidesans = FontFamily(
+        Font(Res.font.sliide_sans_regular),
+        Font(Res.font.sliide_sans_bold, FontWeight.Bold)
     )
     val inter = FontFamily(
         Font(Res.font.inter_regular),
@@ -29,18 +29,18 @@ fun rememberSliideTypography(): Typography {
     )
 
     return Typography(
-        // Display — Riot Sans Bold, large hero text
-        displayLarge  = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
-        displayMedium = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
-        displaySmall  = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
+        // Display — Sliide Sans Bold, large hero text
+        displayLarge  = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
+        displayMedium = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
+        displaySmall  = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
 
-        // Headlines — Riot Sans, screen/section titles
-        headlineLarge  = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 32.sp, lineHeight = 40.sp),
-        headlineMedium = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 28.sp, lineHeight = 36.sp),
-        headlineSmall  = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.Bold,     fontSize = 24.sp, lineHeight = 32.sp),
+        // Headlines — Sliide Sans, screen/section titles
+        headlineLarge  = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 32.sp, lineHeight = 40.sp),
+        headlineMedium = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 28.sp, lineHeight = 36.sp),
+        headlineSmall  = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.Bold,     fontSize = 24.sp, lineHeight = 32.sp),
 
-        // Titles — Riot Sans for larger, Inter SemiBold for smaller
-        titleLarge  = TextStyle(fontFamily = riotSans, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
+        // Titles — Sliide Sans for larger, Inter SemiBold for smaller
+        titleLarge  = TextStyle(fontFamily = sliidesans, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
         titleMedium = TextStyle(fontFamily = inter,    fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp),
         titleSmall  = TextStyle(fontFamily = inter,    fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
 

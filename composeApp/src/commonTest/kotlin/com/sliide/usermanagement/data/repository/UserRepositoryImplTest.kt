@@ -3,6 +3,7 @@ package com.sliide.usermanagement.data.repository
 import com.sliide.usermanagement.data.local.UserLocalStore
 import com.sliide.usermanagement.data.remote.RemoteUserSource
 import com.sliide.usermanagement.data.remote.dto.UserDto
+import com.sliide.usermanagement.data.remote.dto.UsersResponse
 import com.sliide.usermanagement.domain.DomainException
 import com.sliide.usermanagement.domain.model.User
 import kotlinx.io.IOException
@@ -19,7 +20,12 @@ class UserRepositoryImplTest {
     private class FakeRemoteUserSource(
         private val usersResult: () -> List<UserDto> = { emptyList() }
     ) : RemoteUserSource {
-        override suspend fun fetchUsers(skip: Int, limit: Int): List<UserDto> = usersResult()
+        // limit=0 is the probe call — return metadata with empty list.
+        // Any other limit returns actual user data. total=0 means lastPageSkip=maxOf(0,0-limit)=0,
+        // so tests always fetch from skip=0 just as before.
+        override suspend fun fetchUsers(skip: Int, limit: Int): UsersResponse =
+            if (limit == 0) UsersResponse(emptyList(), total = 0)
+            else UsersResponse(usersResult())
         override suspend fun createUser(name: String, email: String, gender: String, status: String): UserDto =
             error("unexpected call")
         override suspend fun deleteUser(id: Long) = Unit

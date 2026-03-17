@@ -16,8 +16,11 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     override suspend fun getUsers(forceRefresh: Boolean, skip: Int, limit: Int): Result<List<User>> = runCatching {
-        val serverUsers = api.fetchUsers(skip, limit).map { it.toDomain() }
         if (skip == 0) {
+            // Probe total count (limit=0 returns metadata only, no user payload).
+            val total = api.fetchUsers(skip = 0, limit = 0).total
+            val lastPageSkip = maxOf(0, total - limit)
+            val serverUsers = api.fetchUsers(skip = lastPageSkip, limit = limit).users.map { it.toDomain() }
             // Replace server rows only — locally-created users (id > DUMMYJSON_MAX_ID) are never
             // touched, so they survive pull-to-refresh and app restarts automatically.
             localDataSource.clearServerUsers()
@@ -25,7 +28,7 @@ class UserRepositoryImpl(
             val localOnly = localDataSource.getAllUsers().filter { it.id > DUMMYJSON_MAX_ID }
             localOnly + serverUsers
         } else {
-            serverUsers
+            api.fetchUsers(skip, limit).users.map { it.toDomain() }
         }
     }.recoverCatching { error ->
         // Offline fallback — only applies to initial load (skip == 0); pagination requires network

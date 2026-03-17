@@ -42,6 +42,7 @@ internal object AppStrings {
 
     // Navigation
     const val CD_BACK = "Back"
+    const val CD_CLOSE = "Close"
 
     // Add user dialog
     const val DIALOG_ADD_TITLE = "New User"

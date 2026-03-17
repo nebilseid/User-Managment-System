@@ -1,14 +1,10 @@
 package com.sliide.usermanagement.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,8 +19,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -42,7 +36,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -90,8 +83,8 @@ fun AddUserDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(24.dp)
                     .fillMaxWidth()
+                    .padding(24.dp)
             ) {
                 Text(
                     text = AppStrings.DIALOG_ADD_TITLE,
@@ -241,51 +234,6 @@ fun AddUserDialog(
     }
 }
 
-@Composable
-private fun ChipGroup(
-    label: String,
-    options: List<String>,
-    selected: String,
-    highlighted: Boolean,
-    onSelect: (String) -> Unit
-) {
-    val primary = MaterialTheme.colorScheme.primary
-    val borderColor by animateColorAsState(
-        targetValue = if (highlighted) primary.copy(alpha = 0.55f) else Color.Transparent,
-        animationSpec = tween(durationMillis = 300),
-        label = AppStrings.ANIM_CHIP_GROUP_BORDER
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(BorderStroke(1.5.dp, borderColor), RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (highlighted) primary else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option ->
-                FilterChip(
-                    selected = selected == option,
-                    onClick = { onSelect(option) },
-                    label = { Text(option.replaceFirstChar { it.uppercase() }) },
-                    colors = chipColors()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun chipColors() = FilterChipDefaults.filterChipColors(
-    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-    selectedLabelColor = MaterialTheme.colorScheme.primary,
-    selectedLeadingIconColor = MaterialTheme.colorScheme.primary
-)
 
 @Preview(showBackground = true)
 @Composable

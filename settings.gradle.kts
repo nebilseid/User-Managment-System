@@ -1,4 +1,4 @@
-rootProject.name = "SliideUserManagement"
+rootProject.name = "SUMS"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

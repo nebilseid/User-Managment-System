@@ -16,11 +16,11 @@ import io.ktor.http.contentType
 
 class UserApi(private val client: HttpClient) : RemoteUserSource {
 
-    override suspend fun fetchUsers(skip: Int, limit: Int): List<UserDto> {
+    override suspend fun fetchUsers(skip: Int, limit: Int): UsersResponse {
         return client.get("$BASE_URL/users") {
             parameter("limit", limit)
             parameter("skip", skip)
-        }.body<UsersResponse>().users
+        }.body<UsersResponse>()
     }
 
     override suspend fun createUser(name: String, email: String, gender: String, status: String): UserDto {

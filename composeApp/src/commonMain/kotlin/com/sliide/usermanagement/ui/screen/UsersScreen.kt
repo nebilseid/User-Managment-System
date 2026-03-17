@@ -46,7 +46,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +69,7 @@ import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.presentation.UserError
 import com.sliide.usermanagement.presentation.UsersViewModel
 import com.sliide.usermanagement.ui.components.AddUserDialog
+import com.sliide.usermanagement.ui.screen.AddUserScreen
 import com.sliide.usermanagement.ui.components.DeleteConfirmDialog
 import com.sliide.usermanagement.ui.components.DeleteSnackbar
 import com.sliide.usermanagement.ui.components.ErrorBlock
@@ -87,7 +90,10 @@ fun UsersScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val windowInfo = LocalWindowInfo.current
-    val isExpanded = with(LocalDensity.current) { windowInfo.containerSize.width.toDp() } > 600.dp
+    val density = LocalDensity.current
+    val isExpanded = with(density) { windowInfo.containerSize.width.toDp() } > 600.dp
+    // True tablet: both dimensions are large. Landscape phone is wide but short.
+    val isTablet = isExpanded && with(density) { windowInfo.containerSize.height.toDp() } > 480.dp
     val pullRefreshState = rememberPullToRefreshState()
     val listState = rememberLazyListState()
     var wasSubmitting by remember { mutableStateOf(false) }
@@ -180,6 +186,22 @@ fun UsersScreen(
                 )
             }
         }
+
+        // Phone (portrait + landscape): full-screen overlay slides up from bottom
+        AnimatedVisibility(
+            visible = uiState.showAddUserDialog && !isTablet,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it }
+        ) {
+            AddUserScreen(
+                isSubmitting = uiState.isSubmittingUser,
+                serverError = uiState.addUserError,
+                onDismiss = { viewModel.dismissAddUserDialog() },
+                onConfirm = { name, email, gender, status ->
+                    viewModel.createUser(name, email, gender, status)
+                }
+            )
+        }
     }
 
     uiState.confirmingDeleteUser?.let { user ->
@@ -190,7 +212,8 @@ fun UsersScreen(
         )
     }
 
-    if (uiState.showAddUserDialog) {
+    // Tablet: dialog is appropriate since there's enough screen real estate
+    if (uiState.showAddUserDialog && isTablet) {
         AddUserDialog(
             isSubmitting = uiState.isSubmittingUser,
             serverError = uiState.addUserError,

@@ -15,7 +15,7 @@ data class UserDto(
 )
 
 @Serializable
-data class UsersResponse(val users: List<UserDto>)
+data class UsersResponse(val users: List<UserDto>, val total: Int = 0)
 
 @Serializable
 data class CreateUserRequest(
