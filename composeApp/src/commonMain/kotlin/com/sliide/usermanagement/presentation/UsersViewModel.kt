@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sliide.usermanagement.data.preferences.DeleteHintStore
 import com.sliide.usermanagement.domain.DomainException
+import com.sliide.usermanagement.domain.model.CreateUserRequest
 import com.sliide.usermanagement.domain.model.User
 import com.sliide.usermanagement.domain.repository.UserRepository
 import com.sliide.usermanagement.domain.usecase.CreateUserUseCase
@@ -108,7 +109,7 @@ class UsersViewModel(
     fun createUser(name: String, email: String, gender: String, status: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmittingUser = true, addUserError = null) }
-            createUserUseCase(name, email, gender, status)
+            createUserUseCase(CreateUserRequest(name = name, email = email, gender = gender, status = status))
                 .onSuccess { user ->
                     _uiState.update { state ->
                         state.copy(
@@ -126,7 +127,7 @@ class UsersViewModel(
                                 is DomainException.NetworkException -> CreateUserError.NetworkError
                                 is DomainException.ConflictException -> CreateUserError.DuplicateEmail
                                 is DomainException.ServerException -> CreateUserError.ServerError
-                                is IllegalArgumentException -> CreateUserError.ValidationError(
+                                is DomainException.ValidationException -> CreateUserError.ValidationError(
                                     error.message ?: "Invalid input"
                                 )
                                 else -> CreateUserError.Unknown

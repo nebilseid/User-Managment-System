@@ -9,4 +9,7 @@ sealed class DomainException(message: String, cause: Throwable? = null) : Except
 
     /** Any other server-side failure (5xx, unexpected response). */
     class ServerException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+
+    /** Input failed domain validation rules before reaching the network. */
+    class ValidationException(message: String) : DomainException(message)
 }
